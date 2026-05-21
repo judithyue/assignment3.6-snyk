@@ -1,0 +1,55 @@
+name: CI Scan Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  terraform-checks:
+    name: Terraform Validation & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+
+      - name: Terraform Format Check
+        run: terraform fmt -check
+
+      - name: Terraform Init
+        run: terraform init -backend=false
+        env:
+          AWS_DEFAULT_REGION: ap-southeast-1
+
+      - name: Terraform Validate
+        run: terraform validate
+
+  snyk-checks:
+    name: Snyk Security Scans
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      # install the Snyk CLI onto the runner 
+      - name: Setup Snyk CLI
+        uses: snyk/actions/setup@master
+
+      # Scan 1: Infrastructure as Code (IaC) configuration vulnerabilities using the CLI
+      - name: Snyk IaC Scan
+        run: snyk iac test --severity-threshold=high
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      # Scan 2: Application Code Scan (Snyk Code for Python vulnerabilities)
+      - name: Snyk Code Scan
+        run: snyk code test
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+# https://docs.snyk.io/developer-tools/snyk-cli/scan-and-maintain-projects-using-the-cli/set-severity-thresholds-for-cli-tests
+# Severity thresholds for CLI tests
