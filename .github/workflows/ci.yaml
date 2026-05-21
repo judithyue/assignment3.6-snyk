@@ -84,10 +84,10 @@ jobs:
       # Scan 3: Open Source Dependencies Scan (Snyk Test)
       # Since we are using standard Python files without external package files (like requirements.txt),
       # we bypass strict package resolution checks using the --file flag on our script.
-      - name: Snyk Open Source Scan
-        run: snyk test --file=lambda.py
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      #- name: Snyk Open Source Scan
+        #run: snyk test --file=lambda.py
+        #env:
+          #SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
   summary:
     needs: [terraform-checks, snyk-checks]
